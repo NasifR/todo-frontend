@@ -8,24 +8,52 @@ const TaskList = () => {
   const [newTask, setNewTask] = useState({ title: "", description: "" });
 
   const fetchTasks = async () => {
-    const { data } = await getTasks();
-    setTasks(data);
+    try {
+      const tasks = await getTasks();
+      console.log("Tasks data received:", tasks);  // Add this line to check the data
+      if (Array.isArray(tasks)) {
+        setTasks(tasks);
+      } else {
+        console.error("Invalid tasks data:", tasks);  // This will show what was returned
+        setTasks([]);  // Set to empty array if data is invalid
+      }
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      setTasks([]);  // Set to empty array in case of error
+    }
   };
+  
 
   const handleCreate = async () => {
-    await createTask(newTask);
-    setNewTask({ title: "", description: "" });
-    fetchTasks();
+    if (!newTask.title.trim() || !newTask.description.trim()) {
+      alert("Please enter both title and description.");
+      return;
+    }
+    try {
+      await createTask(newTask);
+      setNewTask({ title: "", description: "" });
+      fetchTasks();
+    } catch (error) {
+      console.error("Error creating task:", error);
+    }
   };
 
   const handleUpdate = async (id) => {
-    await updateTask(id, { completed: true });
-    fetchTasks();
+    try {
+      await updateTask(id, { completed: true });
+      fetchTasks();
+    } catch (error) {
+      console.error("Error updating task:", error);
+    }
   };
 
   const handleDelete = async (id) => {
-    await deleteTask(id);
-    fetchTasks();
+    try {
+      await deleteTask(id);
+      fetchTasks();
+    } catch (error) {
+      console.error("Error deleting task:", error);
+    }
   };
 
   useEffect(() => {
@@ -49,7 +77,7 @@ const TaskList = () => {
       ></textarea>
       <button onClick={handleCreate}>Add Task</button>
       <ul>
-        {tasks.map((task) => (
+        {Array.isArray(tasks) && tasks.map((task) => (
           <li key={task._id}>
             <div style={{ flexGrow: 1 }}>
               <h3 className={task.completed ? "completed" : ""}>
@@ -57,21 +85,17 @@ const TaskList = () => {
               </h3>
               <p>{task.description}</p>
             </div>
-            {task.completed && (
-              <span className="checkmark">✔</span>
-            )}
+            {task.completed && <span className="checkmark">✔</span>}
             <div>
-              <button
-                className="complete"
-                onClick={() => handleUpdate(task._id)}
-                disabled={task.completed} // Disable if already completed
-              >
-                Mark Complete
-              </button>
-              <button
-                className="delete"
-                onClick={() => handleDelete(task._id)}
-              >
+              {!task.completed && (
+                <button
+                  className="complete"
+                  onClick={() => handleUpdate(task._id)}
+                >
+                  Mark Complete
+                </button>
+              )}
+              <button className="delete" onClick={() => handleDelete(task._id)}>
                 Delete
               </button>
             </div>
@@ -81,5 +105,7 @@ const TaskList = () => {
     </div>
   );
 };
+console.log("API URL:", process.env.REACT_APP_API_URL);
+
 
 export default TaskList;

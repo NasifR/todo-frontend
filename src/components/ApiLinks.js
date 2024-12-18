@@ -4,7 +4,7 @@ const ApiLinks = () => (
   <div>
     <h2>API Endpoints</h2>
     <ul>
-      <li><a href="https://todo-backend-three-omega.vercel.app/api/tasks" target="_blank">View Tasks</a></li>
+      <li><a href={`${process.env.REACT_APP_API_URL}/tasks`} target="_blank" rel="noreferrer">View Tasks</a></li>
     </ul>
   </div>
 );
